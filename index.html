@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Upload Audio ke Channel - WhatsApp Bot Session</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background: #0b141e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            max-width: 600px;
+            width: 100%;
+            background: #1e2a36;
+            border-radius: 32px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+            overflow: hidden;
+            padding: 24px 20px 32px;
+            border: 1px solid #2e3b47;
+        }
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #e9edef;
+            margin: 0 0 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sub {
+            color: #8696a0;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            border-left: 3px solid #25d366;
+            padding-left: 12px;
+        }
+        .session-section {
+            background: #0a141f;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .session-title {
+            font-weight: 600;
+            color: #25d366;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .session-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .status-connected {
+            background: #075e54;
+            color: #25d366;
+        }
+        .status-disconnected {
+            background: #3b2a2a;
+            color: #ff7777;
+        }
+        .status-loading {
+            background: #2a3b3b;
+            color: #ffd966;
+        }
+        .session-info {
+            font-size: 0.8rem;
+            color: #aebac1;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #2e3b47;
+        }
+        .session-number {
+            font-family: monospace;
+            background: #111b22;
+            padding: 4px 10px;
+            border-radius: 16px;
+        }
+        button {
+            background: #25d366;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: #0b141e;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:disabled {
+            background: #3b4a54;
+            color: #8696a0;
+            cursor: not-allowed;
+        }
+        .channel-info {
+            background: #0a141f;
+            border-radius: 20px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: #aebac1;
+        }
+        .channel-label {
+            font-weight: 600;
+            color: #25d366;
+            margin-right: 8px;
+        }
+        .drop-zone {
+            background: #111b22;
+            border: 2px dashed #3b4a54;
+            border-radius: 28px;
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 20px;
+        }
+        .drop-zone.active {
+            border-color: #25d366;
+            background: #1f2c34;
+        }
+        .drop-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        .drop-text {
+            color: #d1d7db;
+            font-weight: 500;
+        }
+        .file-info {
+            background: #0f1a22;
+            border-radius: 24px;
+            padding: 14px 16px;
+            margin: 16px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .filename {
+            color: #e9edef;
+            font-size: 0.85rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 200px;
+        }
+        .filesize {
+            color: #8696a0;
+            font-size: 0.75rem;
+        }
+        .upload-btn {
+            background: #25d366;
+            width: 100%;
+            padding: 14px;
+            border-radius: 40px;
+            font-size: 1rem;
+            margin-top: 8px;
+        }
+        .log-area {
+            background: #0a141f;
+            border-radius: 24px;
+            padding: 14px 16px;
+            margin-top: 24px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            color: #b9c8da;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .log-entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #202c34;
+            font-size: 0.75rem;
+        }
+        .log-time {
+            color: #5f6f7a;
+            flex-shrink: 0;
+        }
+        .log-error { color: #ffaaaa; }
+        .log-success { color: #a5f0c0; }
+        .log-warning { color: #ffd966; }
+        .footer-note {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #5f6f7a;
+            margin-top: 18px;
+        }
+        .refresh-btn {
+            background: #2a3942;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+        }
+        input.channel-input {
+            background: #111b22;
+            border: 1px solid #3b4a54;
+            border-radius: 20px;
+            padding: 8px 14px;
+            color: #e9edef;
+            width: 100%;
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+        .channel-edit {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>
+        <span>🎧</span> Upload Audio ke Channel
+    </h2>
+    <div class="sub">
+        Kirim VN / audio ke newsletter | Session aktif menentukan nomor bot pengirim
+    </div>
+
+    <!-- SESSION SECTION -->
+    <div class="session-section">
+        <div class="session-header">
+            <div class="session-title">
+                📱 <span>Session Bot WhatsApp</span>
+            </div>
+            <button id="refreshSessionBtn" class="refresh-btn">🔄 Refresh Status</button>
+        </div>
+        <div id="sessionStatusArea">
+            <div class="session-status status-loading" style="display: inline-block;">🔍 Memeriksa session...</div>
+        </div>
+        <div class="session-info" id="sessionDetail">
+            <span>📞 Nomor: <span id="botNumber" class="session-number">-</span></span>
+            <span>🔑 Session: <span id="sessionName">default</span></span>
+        </div>
+    </div>
+
+    <!-- CHANNEL INFO -->
+    <div class="channel-info">
+        <span class="channel-label">📢 Channel Target:</span>
+        <div class="channel-edit">
+            <input type="text" id="channelIdInput" class="channel-input" value="120363403952337689@newsletter">
+            <button id="saveChannelBtn" style="padding: 6px 12px; font-size:0.7rem;">Simpan</button>
+        </div>
+        <div style="font-size:11px; margin-top:6px;">* ID newsletter / channel tujuan</div>
+    </div>
+
+    <!-- UPLOAD AREA -->
+    <div class="drop-zone" id="dropZone">
+        <div class="drop-icon">🎵📤</div>
+        <div class="drop-text">Klik atau drag & drop file audio</div>
+        <div style="font-size:12px; margin-top: 12px; color:#6a7a86;">Support MP3, M4A, OGG, WAV, WebM, AAC, VN</div>
+        <input type="file" id="fileInput" accept="audio/*" style="display: none;">
+    </div>
+
+    <div id="filePreview" class="file-info" style="display: none;">
+        <div>
+            <div class="filename" id="fileName"></div>
+            <div class="filesize" id="fileSize"></div>
+        </div>
+        <button id="clearFileBtn" style="width: auto; padding: 6px 14px; margin:0; background:#2a3942;">✖ Hapus</button>
+    </div>
+
+    <button id="uploadBtn" class="upload-btn" disabled>
+        <span>⬆️</span> Konversi & Kirim ke Channel
+    </button>
+
+    <div class="log-area" id="logArea">
+        <div class="log-entry"><span class="log-time">──</span> 🟢 Siap menggunakan session bot</div>
+        <div class="log-entry"><span class="log-time">──</span> ⚙️ Konversi ffmpeg: ac1, ar48k, libopus 128k</div>
+    </div>
+    <div class="footer-note">
+        💡 Session tersimpan di server (auth_info_baileys).<br>
+        Nomor bot yang terdaftar akan menjadi pengirim ke channel.
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    //  FRONTEND DENGAN SESSION (NOMOR BOT)
+    //  Endpoint backend:
+    //    GET  /api/session-status  -> ambil info nomor bot & koneksi
+    //    POST /api/upload-channel  -> upload + ffmpeg + kirim pakai session aktif
+    // ============================================================
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    const fileNameSpan = document.getElementById('fileName');
+    const fileSizeSpan = document.getElementById('fileSize');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const logArea = document.getElementById('logArea');
+    const clearFileBtn = document.getElementById('clearFileBtn');
+    const refreshSessionBtn = document.getElementById('refreshSessionBtn');
+    const saveChannelBtn = document.getElementById('saveChannelBtn');
+    const channelIdInput = document.getElementById('channelIdInput');
+    const botNumberSpan = document.getElementById('botNumber');
+    const sessionStatusArea = document.getElementById('sessionStatusArea');
+
+    let selectedFile = null;
+    let currentSessionReady = false;
+    let currentBotNumber = null;
+
+    // Fungsi log
+    function addLog(message, type = 'info') {
+        const logDiv = document.createElement('div');
+        logDiv.className = 'log-entry';
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute:'2-digit', second:'2-digit' });
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'log-time';
+        timeSpan.textContent = `[${timeStr}]`;
+        
+        const msgSpan = document.createElement('span');
+        msgSpan.textContent = message;
+        if (type === 'error') msgSpan.classList.add('log-error');
+        else if (type === 'success') msgSpan.classList.add('log-success');
+        else if (type === 'warning') msgSpan.classList.add('log-warning');
+        
+        logDiv.appendChild(timeSpan);
+        logDiv.appendChild(msgSpan);
+        logArea.appendChild(logDiv);
+        logDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        // trim biar gak numpuk
+        while (logArea.children.length > 80) {
+            logArea.removeChild(logArea.firstChild);
+        }
+    }
+
+    // Format ukuran file
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Cek status session dari backend
+    async function fetchSessionStatus() {
+        try {
+            sessionStatusArea.innerHTML = '<div class="session-status status-loading" style="display: inline-block;">🔄 Mengecek session...</div>';
+            const response = await fetch('/api/session-status');
+            const data = await response.json();
+            
+            if (data.connected && data.botNumber) {
+                currentSessionReady = true;
+                currentBotNumber = data.botNumber;
+                botNumberSpan.textContent = data.botNumber;
+                sessionStatusArea.innerHTML = `<div class="session-status status-connected" style="display: inline-block;">✅ Terhubung (${data.sessionName || 'session'})</div>`;
+                addLog(`✅ Session aktif: ${data.botNumber}`, 'success');
+                addLog(`📡 WhatsApp Web terhubung, siap kirim ke channel`, 'success');
+            } else {
+                currentSessionReady = false;
+                sessionStatusArea.innerHTML = `<div class="session-status status-disconnected" style="display: inline-block;">❌ Session tidak aktif / perlu login</div>`;
+                addLog(`⚠️ Session belum terhubung. Scan QR dulu di endpoint /qr`, 'warning');
+                botNumberSpan.textContent = '-';
+            }
+            // update tombol upload
+            updateUploadButtonState();
+        } catch (err) {
+            console.error(err);
+            sessionStatusArea.innerHTML = `<div class="session-status status-disconnected" style="display: inline-block;">⚠️ Gagal hubungi backend</div>`;
+            addLog(`❌ Tidak bisa cek session: ${err.message}`, 'error');
+            currentSessionReady = false;
+            updateUploadButtonState();
+        }
+    }
+
+    function updateUploadButtonState() {
+        if (selectedFile && currentSessionReady) {
+            uploadBtn.disabled = false;
+        } else {
+            uploadBtn.disabled = true;
+            if (!selectedFile && currentSessionReady) uploadBtn.disabled = true;
+            else if (selectedFile && !currentSessionReady) uploadBtn.disabled = true;
+        }
+    }
+
+    // Handle file
+    function handleFile(file) {
+        if (!file) return;
+        if (!file.type.startsWith('audio/')) {
+            addLog(`❌ Bukan file audio: ${file.type}`, 'error');
+            return false;
+        }
+        selectedFile = file;
+        fileNameSpan.textContent = file.name;
+        fileSizeSpan.textContent = formatBytes(file.size);
+        filePreview.style.display = 'flex';
+        addLog(`🎵 File siap: ${file.name} (${formatBytes(file.size)})`, 'success');
+        updateUploadButtonState();
+        return true;
+    }
+
+    // Event listener file
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('active'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('active');
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
+    clearFileBtn.addEventListener('click', () => {
+        selectedFile = null;
+        filePreview.style.display = 'none';
+        fileInput.value = '';
+        updateUploadButtonState();
+        addLog('🗑 File dihapus', 'warning');
+    });
+    refreshSessionBtn.addEventListener('click', () => fetchSessionStatus());
+    
+    // Simpan channel ID ke localStorage biar persist
+    const savedChannel = localStorage.getItem('targetChannelId');
+    if (savedChannel) channelIdInput.value = savedChannel;
+    saveChannelBtn.addEventListener('click', () => {
+        const newId = channelIdInput.value.trim();
+        if (newId) {
+            localStorage.setItem('targetChannelId', newId);
+            addLog(`📢 Channel ID disimpan: ${newId}`, 'success');
+        } else {
+            addLog(`⚠️ Channel ID kosong`, 'warning');
+        }
+    });
+
+    // Upload proses utama (dengan session bot)
+    uploadBtn.addEventListener('click', async () => {
+        if (!selectedFile) {
+            addLog('Pilih file audio dulu', 'error');
+            return;
+        }
+        if (!currentSessionReady) {
+            addLog('Session bot belum siap. Refresh / pastikan sudah login.', 'error');
+            return;
+        }
+
+        const targetChannel = channelIdInput.value.trim();
+        if (!targetChannel) {
+            addLog('Masukkan ID channel tujuan', 'error');
+            return;
+        }
+
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<span>⏳</span> Konversi & Kirim...';
+
+        const formData = new FormData();
+        formData.append('audio', selectedFile);
+        formData.append('channelId', targetChannel);
+        formData.append('botNumber', currentBotNumber || ''); // kirim nomor bot sebagai referensi
+
+        addLog(`🎙️ Memproses file dengan ffmpeg... (audio -> opus, 48kHz)`);
+        addLog(`📤 Mengirim ke channel: ${targetChannel} menggunakan session ${currentBotNumber}`);
+
+        try {
+            const response = await fetch('/api/upload-channel', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+            
+            addLog(`✅ ${result.message || 'Berhasil dikirim ke channel!'}`, 'success');
+            addLog(`📢 Channel: ${result.channelId} | Pengirim: ${result.sender || currentBotNumber}`, 'success');
+            
+            // reset setelah sukses
+            selectedFile = null;
+            filePreview.style.display = 'none';
+            fileInput.value = '';
+            updateUploadButtonState();
+        } catch (err) {
+            addLog(`❌ Gagal: ${err.message}`, 'error');
+            addLog(`💡 Pastikan backend punya akses session & ffmpeg terinstall`, 'error');
+        } finally {
+            uploadBtn.innerHTML = '<span>⬆️</span> Konversi & Kirim ke Channel';
+            updateUploadButtonState();
+        }
+    });
+
+    // Initial load session & setiap 30 detik cek ulang (opsional)
+    fetchSessionStatus();
+    setInterval(() => fetchSessionStatus(), 30000);
+</script>
+
+<!-- Catatan untuk BACKEND (Node.js + Baileys + session handling) 
+     dibutuhkan endpoint:
+     1. GET  /api/session-status -> return { connected, botNumber, sessionName }
+     2. POST /api/upload-channel -> seperti handler asli, menggunakan session yang sudah ada
+     
+     Contoh implementasi backend (express) dengan session persist:
+     
+     import { makeWASocket, useMultiFileAuthState } from '@whiskeysockets/baileys';
+     import express from 'express';
+     import multer from 'multer';
+     import fs from 'fs'; path from 'path'; os from 'os'; { exec } from 'child_process';
+     
+     const app = express();
+     const upload = multer({ dest: os.tmpdir() });
+     let sock = null;
+     let isConnected = false;
+     let botJid = null;
+     
+     async function startBot() {
+         const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
+         sock = makeWASocket({ auth: state, printQRInTerminal: true });
+         sock.ev.on('connection.update', (update) => {
+             if (update.connection === 'open') {
+                 isConnected = true;
+                 botJid = sock.user.id;
+                 console.log('Bot connected:', botJid);
+             }
+         });
+         sock.ev.on('creds.update', saveCreds);
+     }
+     startBot();
+     
+     app.get('/api/session-status', (req, res) => {
+         res.json({ connected: isConnected, botNumber: botJid?.split(':')[0] || null, sessionName: 'auth_info_baileys' });
+     });
+     
+     app.post('/api/upload-channel', upload.single('audio'), async (req, res) => {
+         if (!isConnected || !sock) return res.status(503).json({ error: 'Session bot tidak aktif' });
+         const idsal = req.body.channelId;
+         const inputPath = req.file.path;
+         const outputPath = path.join(os.tmpdir(), `${Date.now()}_out.ogg`);
+         await new Promise((resolve, reject) => {
+             exec(`ffmpeg -y -i "${inputPath}" -map_metadata -1 -vn -ac 1 -ar 48000 -c:a libopus -b:a 128k "${outputPath}"`, 
+             (err) => err ? reject(err) : resolve());
+         });
+         const audioBuffer = fs.readFileSync(outputPath);
+         await sock.sendMessage(idsal, { audio: audioBuffer, mimetype: 'audio/ogg; codecs=opus', ptt: true });
+         fs.unlinkSync(inputPath); fs.unlinkSync(outputPath);
+         res.json({ success: true, message: 'Audio terkirim', channelId: idsal, sender: botJid });
+     });
+     
+     app.listen(3000);
+-->
+</body>
+</html>
